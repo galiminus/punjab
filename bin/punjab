@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const process = require('process');
+const path = require('path');
+const fs = require('fs')
+
+if (process.argv[2] === 'install') {
+  if (!fs.existsSync("./package.json") && process.argv[3] !== '--force') {
+    console.error("Your local folder doesn't seem top be a NodeJS project (ie. no package.json), use --force to ignore.")
+  }
+
+  if (!fs.existsSync("./policies")) {
+    fs.mkdirSync('./policies');
+  }
+
+  const policyDestination = './policies/applicationPolicy.js'
+  if (!fs.existsSync(policyDestination)) {
+    fs.copyFileSync(path.join(__dirname, '../templates/applicationPolicy.js'), policyDestination);
+    console.log(`\t\x1b[32mcreate\x1b[0m\t ${policyDestination}`);
+  } else {
+    console.log(`\t\x1b[34mexists\x1b[0m\t ${policyDestination}`);
+  }
+}

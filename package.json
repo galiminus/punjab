@@ -1,0 +1,12 @@
+{
+  "name": "punjab",
+  "version": "0.0.2",
+  "description": "Pundit for Node.JS",
+  "main": "src/index.js",
+  "repository": "git@github.com:victorgoya/punjab.git",
+  "author": "Victor Goya <victor@lalilo.com>",
+  "license": "MIT",
+  "bin": {
+    "punjab": "bin/punjab"
+  }
+}

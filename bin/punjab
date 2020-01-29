@@ -27,8 +27,8 @@ const ensureJSProject = () => {
   }
 }
 
-const copyTemplate = (src, dest, sub = {}) => {
-  if (!fs.existsSync(dest) || true) {
+const copyTemplate = (src, dest, sub = []) => {
+  if (!fs.existsSync(dest)) {
     let data = fs.readFileSync(path.join(__dirname, `../templates/${src}`)).toString();
     for ([name, value] of sub) {
       data = data.replace(name, value);
@@ -49,11 +49,16 @@ const ensurePoliciesFolder = () => {
   }
 }
 
+const install = () => {
+  ensureJSProject();
+  ensurePoliciesFolder();
+  copyTemplate('applicationPolicy.js', `${POLICIES_FOLDER}/applicationPolicy.js`);
+}
+
+
 try {
   if (process.argv[2] === 'install') {
-    ensureJSProject();
-    ensurePoliciesFolder();
-    copyTemplate('applicationPolicy.js', `${POLICIES_FOLDER}/applicationPolicy.js`);
+
   }
   else if (process.argv[2] === 'generate' || process.argv[2] === 'g') {
     const modelName = process.argv[3];
@@ -62,8 +67,7 @@ try {
       throw new Error(usage())
     }
 
-    ensureJSProject();
-    ensurePoliciesFolder();
+    install();
     copyTemplate(
       'modelPolicy.js',
       `${POLICIES_FOLDER}/${modelName.charAt(0).toLowerCase() + modelName.slice(1)}Policy.js`,

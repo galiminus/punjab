@@ -1,7 +1,6 @@
 # Punjab
 
-Punjab is a simple, robust and scalable authorization library for Node.JS, it is heaviy inspired by [pundit](https://github.com/varvet/pundit).
-
+Punjab is a simple, robust and scalable authorization library for Node.JS, it is heavily inspired by [pundit](https://github.com/varvet/pundit). Most of this documentation was actually taken from Pundit and adapted for Node.
 
 * *Punjab* is just a small collection of helpers that helps enforcing a security model.
 * It ships with a base policy class that you are free to update, or not use at all.
@@ -34,7 +33,7 @@ class PostPolicy {
   }
 
   canUpdate() {
-    user.isAdmin || !post.published?
+    this.user.isAdmin || !this.post.published?
   }
 }
 ```
@@ -54,7 +53,7 @@ const ApplicationPolicy = require('./ApplicationPolicy');
 
 class PostPolicy extends ApplicationPolicy {
   canUpdate() {
-    user.isAdmin || !record.published?
+    this.user.isAdmin || !this.record.published?
   }
 }
 ```
@@ -298,6 +297,16 @@ const app = Express()
 As you can see, *Punjab* doesn't do anything you couldn't have easily done yourself. It's a very small library, it just provides a few neat helpers. Together these give you the power of building a well structured, fully working authorization system without using any special DSLs or funky syntax or anything.
 
 Remember that all of the policy and scope classes are just plain Javascript classes, which means you can use the same mechanisms you always use to DRY things up. Encapsulate a set of permissions into a module and include them in multiple policies. Call some policy method inside another to make some permissions behave the same as others. Inherit from a base set of permissions.
+
+## Generator
+
+Use the supplied generator to generate policies:
+
+```
+npx punjab generate Post
+```
+
+This will create a `policies/postPolicy.js` file that contains a `PostPolicy` class that inherits from `ApplicationPolicy`.
 
 ## Rescuing a denied Authorization in Express
 

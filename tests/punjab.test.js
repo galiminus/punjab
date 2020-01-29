@@ -1,5 +1,5 @@
-const { ensure, PolicyNotAuthorizedError } = require('../src/index');
-const ApplicationPolicy = require('../../../templates/applicationPolicy');
+const { ensure, check, policyScope, PolicyNotAuthorizedError } = require('../src/index');
+const ApplicationPolicy = require('../templates/applicationPolicy');
 
 class PostPolicy extends ApplicationPolicy {
   canIndex() {
@@ -19,9 +19,20 @@ class PostPolicy extends ApplicationPolicy {
   }
 }
 
+PostPolicy.Scope = class extends ApplicationPolicy.Scope {
+  resolve() {
+    return {
+      ...this.scope,
+      data: this.scope.data.filter((item) => item.AuthorId === this.user.id)
+    }
+  }
+}
+
 describe('ensure()', () => {
   it('signed in users can index', () => {
-    ensure({ id: 1 }, { policy: PostPolicy }, 'canIndex');
+    expect(() => {
+      ensure({ id: 1 }, { policy: PostPolicy }, 'canIndex');
+    }).not.toThrow();
   })
 
   it('null users cannot index', () => {
@@ -31,8 +42,10 @@ describe('ensure()', () => {
   });
 
   it('author can update post', () => {
-    ensure({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate');
-  });
+    expect(() => {
+      ensure({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate');
+     }).not.toThrow();
+   });
 
   it('other users cannot update post', () => {
     expect(() => {
@@ -41,10 +54,69 @@ describe('ensure()', () => {
   });
 
   it('author can update post depending on an external parameter', () => {
-    ensure({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate');
+    expect(() => {
+      ensure({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate');
+   }).not.toThrow();
     expect(() => {
       ensure({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate', true);
     }).toThrow(PolicyNotAuthorizedError);
+  });
+})
+
+
+describe('check()', () => {
+  it('signed in users can index', () => {
+    expect(
+      check({ id: 1 }, { policy: PostPolicy }, 'canIndex')
+    ).toBe(true)
+  })
+
+  it('null users cannot index', () => {
+    expect(
+      check(null, { constructor: { policy: PostPolicy } }, 'canIndex')
+    ).toBe(false);
+  });
+
+  it('author can update post', () => {
+    expect(
+      check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate')
+    ).toBe(true);
+  });
+
+  it('other users cannot update post', () => {
+    expect(
+      check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 2 }, 'canUpdate')
+    ).toBe(false);
+  });
+
+  it('author can update post depending on an external parameter', () => {
+    expect(
+      check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate')
+    ).toBe(true);
+    expect(
+      check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdate', true)
+    ).toBe(false)
+  });
+
+  describe("scopes", () => {
+    it('filters out results', () => {
+      expect(
+        policyScope(
+          { id: 1 },
+          {
+            policy: PostPolicy,
+            data: [
+              { AuthorId: 1 },
+              { AuthorId: 2 },
+              { AuthorId: 3 },
+              { AuthorId: 1 },
+              { AuthorId: 2 },
+              { AuthorId: 3 },
+            ]
+          }
+        ).data
+      ).toEqual([{"AuthorId": 1}, {"AuthorId": 1}])
+    });
   });
 })
 

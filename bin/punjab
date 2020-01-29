@@ -4,20 +4,76 @@ const process = require('process');
 const path = require('path');
 const fs = require('fs')
 
-if (process.argv[2] === 'install') {
+const POLICIES_FOLDER = './policies';
+
+const usage = () => `npx punjab [action] [params]
+
+Available actions:
+  install\t\t- Install ApplicationPolicy and create policies directory
+  generate <model>\t- Generate a new policy for model <model>, ex: npx generate Post
+`
+
+const logCreate = (path) => {
+  console.log(`\t\x1b[32mcreate\x1b[0m\t ${path}`);
+}
+
+const logExists = (path) => {
+  console.log(`\t\x1b[34mexists\x1b[0m\t ${path}`);
+}
+
+const ensureJSProject = () => {
   if (!fs.existsSync("./package.json") && process.argv[3] !== '--force') {
-    console.error("Your local folder doesn't seem top be a NodeJS project (ie. no package.json), use --force to ignore.")
+    throw new Error("Your local folder doesn't seem top be a NodeJS project (ie. no package.json), use --force to ignore.")
   }
+}
 
-  if (!fs.existsSync("./policies")) {
-    fs.mkdirSync('./policies');
-  }
-
-  const policyDestination = './policies/applicationPolicy.js'
-  if (!fs.existsSync(policyDestination)) {
-    fs.copyFileSync(path.join(__dirname, '../templates/applicationPolicy.js'), policyDestination);
-    console.log(`\t\x1b[32mcreate\x1b[0m\t ${policyDestination}`);
+const copyTemplate = (src, dest, sub = {}) => {
+  if (!fs.existsSync(dest) || true) {
+    let data = fs.readFileSync(path.join(__dirname, `../templates/${src}`)).toString();
+    for ([name, value] of sub) {
+      data = data.replace(name, value);
+    }
+    fs.writeFileSync(dest, data);
+    logCreate(dest);
   } else {
-    console.log(`\t\x1b[34mexists\x1b[0m\t ${policyDestination}`);
+    logExists(dest);
   }
+}
+
+const ensurePoliciesFolder = () => {
+  if (!fs.existsSync(POLICIES_FOLDER)) {
+    fs.mkdirSync(POLICIES_FOLDER);
+    logCreate(POLICIES_FOLDER);
+  } else {
+    logExists(POLICIES_FOLDER);
+  }
+}
+
+try {
+  if (process.argv[2] === 'install') {
+    ensureJSProject();
+    ensurePoliciesFolder();
+    copyTemplate('applicationPolicy.js', `${POLICIES_FOLDER}/applicationPolicy.js`);
+  }
+  else if (process.argv[2] === 'generate' || process.argv[2] === 'g') {
+    const modelName = process.argv[3];
+
+    if (!modelName) {
+      throw new Error(usage())
+    }
+
+    ensureJSProject();
+    ensurePoliciesFolder();
+    copyTemplate(
+      'modelPolicy.js',
+      `${POLICIES_FOLDER}/${modelName.charAt(0).toLowerCase() + modelName.slice(1)}Policy.js`,
+      [[ /__MODEL_NAME__/g, modelName.charAt(0).toUpperCase() + modelName.slice(1) ]]
+    );
+  }
+  else {
+    throw new Error(usage());
+  }
+} catch (error) {
+  console.log(error.message);
+  process.exit(1)
 }

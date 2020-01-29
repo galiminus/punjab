@@ -5,23 +5,23 @@ class ApplicationPolicy {
   }
 
   canIndex() {
-    return (false);
+    return false;
   }
 
   canShow() {
-    return (false);
+    return false;
   }
 
   canUpdate() {
-    return (false);
+    return false;
   }
 
   canCreate() {
-    return (false);
+    return false;
   }
 
   canDestroy() {
-    return (false);
+    return false;
   }
 }
 

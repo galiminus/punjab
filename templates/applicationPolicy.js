@@ -4,23 +4,23 @@ class ApplicationPolicy {
     this.record = record;
   }
 
-  index() {
+  canIndex() {
     return (false);
   }
 
-  show() {
+  canShow() {
     return (false);
   }
 
-  update() {
+  canUpdate() {
     return (false);
   }
 
-  create() {
+  canCreate() {
     return (false);
   }
 
-  destroy() {
+  canDestroy() {
     return (false);
   }
 }

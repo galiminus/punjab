@@ -17,6 +17,14 @@ class PostPolicy extends ApplicationPolicy {
       this.user.id === this.record.AuthorId
     );
   }
+
+  canUpdateWithPromise() {
+    return (
+      new Promise((resolve) => {
+        resolve(this.user.id === this.record.AuthorId)
+      })
+    );
+  }
 }
 
 PostPolicy.Scope = class extends ApplicationPolicy.Scope {
@@ -98,25 +106,37 @@ describe('check()', () => {
     ).toBe(false)
   });
 
-  describe("scopes", () => {
-    it('filters out results', () => {
-      expect(
-        policyScope(
-          { id: 1 },
-          {
-            policy: PostPolicy,
-            data: [
-              { AuthorId: 1 },
-              { AuthorId: 2 },
-              { AuthorId: 3 },
-              { AuthorId: 1 },
-              { AuthorId: 2 },
-              { AuthorId: 3 },
-            ]
-          }
-        ).data
-      ).toEqual([{"AuthorId": 1}, {"AuthorId": 1}])
-    });
+  it('support async error', async () => {
+    expect(
+      await check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 2 }, 'canUpdateWithPromise')
+    ).toBe(false)
   });
-})
+
+  it('support async success', async () => {
+    expect(
+      await check({ id: 1 }, { constructor: { policy: PostPolicy }, AuthorId: 1 }, 'canUpdateWithPromise')
+    ).toBe(true);
+  });
+});
+
+describe("scopes", () => {
+  it('filters out results', () => {
+    expect(
+      policyScope(
+        { id: 1 },
+        {
+          policy: PostPolicy,
+          data: [
+            { AuthorId: 1 },
+            { AuthorId: 2 },
+            { AuthorId: 3 },
+            { AuthorId: 1 },
+            { AuthorId: 2 },
+            { AuthorId: 3 },
+          ]
+        }
+      ).data
+    ).toEqual([{"AuthorId": 1}, {"AuthorId": 1}])
+  });
+});
 

@@ -5,7 +5,7 @@ const policy = (user, record) => (
 )
 
 const check = (user, record, action, ...args) => (
-  !!policy(user, record)[action](...args)
+  policy(user, record)[action](...args)
 )
 
 const ensure = (...params) => {

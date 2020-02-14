@@ -107,7 +107,7 @@ The `ensure` method infers that `post` will have a linked PostPolicy class, and 
 const { PolicyNotAuthorizedError } = require('punjab');
 const PostPolicy = require('./policies/PostPolicy');
 
-const postPolicy = new PostPolicy.new(req.user, post);
+const postPolicy = new PostPolicy(req.user, post);
 if (!postPolicy.canUpdate('someOptionalParameter')) {
   throw new PolicyNotAuthorizedError;
 }
